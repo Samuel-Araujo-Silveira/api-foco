@@ -24,6 +24,7 @@ class ReservationRoom extends Model
         'reservation_id',
     ];
 
+
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);
