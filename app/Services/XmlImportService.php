@@ -50,6 +50,7 @@ class XmlImportService
                     'hotel_id'        => $attributesOfTheObject['hotel_id'],
                     'name'            => $contentOfTheObject['room'],
                     'inventory_count' => $attributesOfTheObject['inventory_count'],
+                    'hotel_name'      => $attributesOfTheObject['hotel_name']
                 ]
             );
         });

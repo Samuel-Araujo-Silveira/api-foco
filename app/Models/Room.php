@@ -14,6 +14,7 @@ class Room extends Model
         'name',
         'id',
         'inventory_count',
+        'hotel_name',
         'hotel_id'
 
     ];

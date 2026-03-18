@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id')->primary();
             $table->integer('inventory_count');
             $table->string('name');
+            $table->string('hotel_name');
             $table->timestamps();
 
             $table->unsignedBigInteger('hotel_id');
