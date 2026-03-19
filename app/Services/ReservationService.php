@@ -11,24 +11,27 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationService
 {
-    public function isRoomAvailable(int $room_id, String $arrival_date, String $departure_date): bool
+    public function isRoomAvailable(int $room_id, String $newArrival_date, String $newDeparture_date): bool
     {
         $roomReservations = ReservationRoom::where('room_id', $room_id)->get();
 
-        $newCheckIn = Carbon::parse($arrival_date);
-        $newCheckOut = Carbon::parse($departure_date);
-
         foreach($roomReservations as $reservation)
         {
-            $currentCheckIn  = Carbon::parse($reservation->arrival_date); 
-            $currentCheckOut = Carbon::parse($reservation->departure_date); 
-
-            if($newCheckIn->lt($currentCheckOut) && $newCheckOut->gt($currentCheckIn))
-            {
-                return false;
+            if ($this->hasConflict($newArrival_date, $newDeparture_date, $reservation->arrival_date, $reservation->departure_date)) {
+                return false; 
             }
         }
         return true;
+    }
+
+    public function hasConflict(string $newCheckIn, string $newCheckOut, string $existingCheckIn, string $existingCheckOut): bool
+    {
+        $newIn  = Carbon::parse($newCheckIn);
+        $newOut = Carbon::parse($newCheckOut);
+        $exIn   = Carbon::parse($existingCheckIn);
+        $exOut  = Carbon::parse($existingCheckOut);
+
+        return $newIn->lt($exOut) && $newOut->gt($exIn);
     }
 
     public function createReservation(array $data): Reservation

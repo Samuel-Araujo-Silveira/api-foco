@@ -1,5 +1,5 @@
 <?php
-namespace Tests\Feature; // ✅ Feature, não Unit
+namespace Tests\Feature; 
 
 use Tests\TestCase;
 use App\Services\ReservationService;

@@ -54,10 +54,8 @@ class ReservationTest extends TestCase
     {
         $payload = $this->makeReservationPayload();
 
-        // primeira reserva
         $this->postJson('/api/v1/reservations', $payload);
 
-        // segunda reserva com datas conflitantes
         $conflictPayload = array_merge($payload, [
             'id'                  => 7777777777,
             'reservation_room_id' => 6666666666,
