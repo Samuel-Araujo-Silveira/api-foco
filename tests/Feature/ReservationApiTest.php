@@ -42,10 +42,7 @@ class ReservationApiTest extends TestCase
         return $reservation;
     }
 
-    /**
-     * Centraliza a criação do payload para evitar duplicação de código.
-     * Gera IDs inteiros para passar na validação do StoreReservationRequest.
-     */
+
     private function getValidPayload(array $overrides = []): array
     {
         $hotelId = $overrides['hotel_id'] ?? Hotel::factory()->create()->id;
@@ -165,7 +162,6 @@ class ReservationApiTest extends TestCase
         $response->assertStatus(201);
 
         $response->assertJsonPath('message', 'Reservation created');
-        // Validando com o número HTTP por conta da trait HttpResponses
         $response->assertJsonPath('status', 201);
 
         $this->assertDatabaseHas('reservations', [
@@ -191,7 +187,6 @@ class ReservationApiTest extends TestCase
         $response->assertStatus(409);
 
         $response->assertJsonPath('message', 'Room not available for this period');
-        // Validando com o número HTTP por conta da trait HttpResponses
         $response->assertJsonPath('status', 409);
     }
 
@@ -213,7 +208,6 @@ class ReservationApiTest extends TestCase
         $response->assertStatus(200);
 
         $response->assertJsonPath('message', 'Reservation deleted');
-        // Validando com o número HTTP por conta da trait HttpResponses
         $response->assertJsonPath('status', 200);
 
         $this->assertDatabaseMissing('reservations', [
