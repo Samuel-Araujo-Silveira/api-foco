@@ -7,10 +7,12 @@ use App\Models\Rate;
 use App\Models\Room;
 use App\Models\Reservation;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 
 class Hotel extends Model
 {
+    use HasFactory;
     public $incrementing = false;
     protected $fillable = [
         'name',

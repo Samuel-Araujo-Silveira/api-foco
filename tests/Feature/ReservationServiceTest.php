@@ -1,26 +1,17 @@
 <?php
+namespace Tests\Feature; // ✅ Feature, não Unit
 
-namespace Tests\Unit;
-
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 use App\Services\ReservationService;
 use App\Models\ReservationRoom;
+use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class ExampleTest extends TestCase
+class ReservationServiceTest extends TestCase
 {
-
     use RefreshDatabase;
 
     private ReservationService $service;
-
-    /**
-     * A basic test example.
-     */
-    public function test_that_true_is_true(): void
-    {
-        $this->assertTrue(true);
-    }
 
     protected function setUp(): void
     {
@@ -30,7 +21,7 @@ class ExampleTest extends TestCase
 
     public function test_room_is_available_when_no_reservations_exist(): void
     {
-        $room = \App\Models\Room::factory()->create();
+        $room = Room::factory()->create();
 
         $result = $this->service->isRoomAvailable(
             $room->id,
@@ -72,5 +63,4 @@ class ExampleTest extends TestCase
 
         $this->assertTrue($result);
     }
-
 }

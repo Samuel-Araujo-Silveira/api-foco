@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Hotel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 
 class Rate extends Model
 {
+    use HasFactory;
     public $incrementing = false;
     protected $fillable = [
         'name',
