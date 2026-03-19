@@ -82,4 +82,28 @@ class ReservationService
             return $reservation;
         });
     }
+
+    public function deleteReservation(string|int $reservationId): bool
+    {
+        $reservation = Reservation::find($reservationId);
+
+        if (!$reservation) {
+            return false; 
+        }
+
+        DB::transaction(function () use ($reservation) {
+            $reservationRooms = ReservationRoom::where('reservation_id', $reservation->id)->get();
+
+            foreach ($reservationRooms as $room) {
+                GuestCount::where('reservation_room_id', $room->id)->delete();
+                RateReservationRoom::where('reservation_room_id', $room->id)->delete();
+                
+                $room->delete();
+            }
+
+            $reservation->delete();
+        });
+
+        return true;
+    }
 }

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreReservationRequest;
 use App\Services\ReservationService;
 use App\Traits\HttpResponses;
+use App\Http\Resources\V1\ReservationResource;
+use App\Models\Reservation;
 
 
 class ReservationController extends Controller
@@ -20,7 +22,13 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        //
+        $reservations = Reservation::with([
+            'customer',
+            'reservation_rooms.guest_counts',
+            'reservation_rooms.rates',
+        ])->get();
+
+        return ReservationResource::collection($reservations);
     }
 
     /**
@@ -46,9 +54,15 @@ class ReservationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Reservation $reservation)
     {
-        //
+        return new ReservationResource(
+            $reservation->load([
+                'customer',
+                'reservation_rooms.guest_counts',
+                'reservation_rooms.rates',
+            ])
+        );
     }
 
     /**
@@ -64,6 +78,12 @@ class ReservationController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $deleted = $this->reservationService->deleteReservation($id);
+
+        if (!$deleted) {
+            return $this->error('Reservation not found', 404);
+        }
+
+        return $this->response('Reservation deleted', 200);
     }
 }
