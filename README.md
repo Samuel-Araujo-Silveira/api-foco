@@ -329,6 +329,7 @@ A importação dos dados é realizada pelo `XmlImportService`, localizado em `ap
 Para arquivos de estrutura simples (`hotels.xml`, `rooms.xml`, `rates.xml`), é utilizado o método genérico `importXml()`, que percorre os nós com `XMLReader` e persiste via `updateOrCreate`. Para o `reservations.xml`, de estrutura aninhada mais complexa, foi criado o método dedicado `importReservations()`, que combina `XMLReader` para navegação e `SimpleXML` para leitura interna de cada reserva.
 
 O CRUD de quartos é exposto via `RoomController` com as rotas `GET`, `POST`, `PATCH` e `DELETE` em `/api/v1/rooms`.
+O CRUD de reservations é exposto via `ReservationsController` com as rotas `GET`, `POST`, `PATCH` e `DELETE` em `/api/v1/reservations`.
 
 ---
 
