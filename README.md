@@ -44,12 +44,6 @@ php artisan tinker --execute="App\Models\User::factory()->create(['email' => 'ad
 php artisan serve
 ```
 
-### 6. Crie o usuário administrador
-
-```bash
-php artisan tinker --execute="App\Models\User::factory()->create(['email' => 'admin@teste.com', 'password' => bcrypt('12345')]);"
-```
-
 ---
 
 ## 🔐 Autenticação
