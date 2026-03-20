@@ -69,8 +69,11 @@ A rota de importação de XMLs é protegida por autenticação via **Laravel San
 
 **Resposta:**
 ```json
-{
-    "token": "seu-token-aqui"
+ "message": "Autenticado com sucesso",
+    "status": 200,
+    "data": {
+        "token": "{token}"
+    }
 }
 ```
 
