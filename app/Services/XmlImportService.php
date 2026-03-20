@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Models\ReservationRoom;
 use App\Models\GuestCount;
 use App\Models\RateReservationRoom;
+use Illuminate\Support\Facades\Log;
 
 
 class XmlImportService
@@ -25,10 +26,12 @@ class XmlImportService
 
     public function importAllXmlFiles(): void
     {
+        Log::info('XML import started');
         $this->importHotels();
         $this->importRooms();
         $this->importRates();
         $this->importReservations();
+        Log::info('XML import finished');
     }
 
     public function importHotels(): void

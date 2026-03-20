@@ -9,6 +9,7 @@ use App\Services\ReservationService;
 use App\Traits\HttpResponses;
 use App\Http\Resources\V1\ReservationResource;
 use App\Models\Reservation;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 
@@ -35,13 +36,18 @@ class ReservationController extends Controller
     )]
     public function index()
     {
-        $reservations = Reservation::with([
-            'customer',
-            'reservation_rooms.guest_counts',
-            'reservation_rooms.rates',
-        ])->get();
+        try {
+            $reservations = Reservation::with([
+                'customer',
+                'reservation_rooms.guest_counts',
+                'reservation_rooms.rates',
+            ])->get();
 
-        return ReservationResource::collection($reservations);
+            return ReservationResource::collection($reservations);
+        } catch (\Exception $e) {
+            Log::error('Error fetching reservations', ['error' => $e->getMessage()]);
+            return $this->error('Error fetching reservations', 500);
+        }
     }
 
     #[OA\Post(
@@ -106,19 +112,23 @@ class ReservationController extends Controller
     )]
     public function store(StoreReservationRequest $request)
     {
-        $isAvailable = $this->reservationService->isRoomAvailable(
-            $request->room_id,
-            $request->arrival_date,
-            $request->departure_date
-         );
+        try {
+            $isAvailable = $this->reservationService->isRoomAvailable(
+                $request->room_id,
+                $request->arrival_date,
+                $request->departure_date
+            );
 
-        if (!$isAvailable) {
-            return $this->error('Room not available for this period', 409);
+            if (!$isAvailable) {
+                return $this->error('Room not available for this period', 409);
+            }
+
+            $reservation = $this->reservationService->createReservation($request->validated());
+            return $this->response('Reservation created', 201, $reservation);
+        } catch (\Exception $e) {
+            Log::error('Error creating reservation', ['error' => $e->getMessage()]);
+            return $this->error('Error creating reservation', 500);
         }
-
-        $reservation = $this->reservationService->createReservation($request->validated());
-
-        return $this->response('Reservation created', 201, $reservation);
     }
 
     #[OA\Get(
@@ -145,13 +155,18 @@ class ReservationController extends Controller
     )]
     public function show(Reservation $reservation)
     {
-        return new ReservationResource(
-            $reservation->load([
-                'customer',
-                'reservation_rooms.guest_counts',
-                'reservation_rooms.rates',
-            ])
-        );
+        try {
+            return new ReservationResource(
+                $reservation->load([
+                    'customer',
+                    'reservation_rooms.guest_counts',
+                    'reservation_rooms.rates',
+                ])
+            );
+        } catch (\Exception $e) {
+            Log::error('Error fetching reservation', ['error' => $e->getMessage()]);
+            return $this->error('Error fetching reservation', 500);
+        }
     }
 
    
@@ -176,12 +191,17 @@ class ReservationController extends Controller
     )]
     public function destroy(string $id)
     {
-        $deleted = $this->reservationService->deleteReservation($id);
+        try {
+            $deleted = $this->reservationService->deleteReservation($id);
 
-        if (!$deleted) {
-            return $this->error('Reservation not found', 404);
+            if (!$deleted) {
+                return $this->error('Reservation not found', 404);
+            }
+
+            return $this->response('Reservation deleted', 200);
+        } catch (\Exception $e) {
+            Log::error('Error deleting reservation', ['error' => $e->getMessage()]);
+            return $this->error('Error deleting reservation', 500);
         }
-
-        return $this->response('Reservation deleted', 200);
     }
 }
