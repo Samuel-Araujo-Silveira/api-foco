@@ -230,6 +230,139 @@
                         "description": "Reserva não encontrada"
                     }
                 }
+            },
+            "put": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Atualizar uma reserva",
+                "operationId": "b5ae38302d67b755a7faf24d2bc14680",
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "description": "ID da reserva",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1001
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "João"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Silva"
+                                    },
+                                    "hotel_id": {
+                                        "type": "integer",
+                                        "example": 1375988
+                                    },
+                                    "room_id": {
+                                        "type": "integer",
+                                        "example": 137598802
+                                    },
+                                    "arrival_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-06-10"
+                                    },
+                                    "departure_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-06-15"
+                                    },
+                                    "currencycode": {
+                                        "type": "string",
+                                        "example": "BRL"
+                                    },
+                                    "meal_plan": {
+                                        "type": "string",
+                                        "example": "Breakfast included."
+                                    },
+                                    "totalprice": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1500
+                                    },
+                                    "guest_counts": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "adult"
+                                                },
+                                                "count": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "prices": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "rate_id": {
+                                                    "type": "integer",
+                                                    "example": 5333849
+                                                },
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2026-06-10"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 300
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reserva atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Reservation"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Quarto não disponível para o período"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    },
+                    "404": {
+                        "description": "Reserva não encontrada"
+                    },
+                    "500": {
+                        "description": "Erro interno"
+                    }
+                }
             }
         },
         "/reservations/{id}": {

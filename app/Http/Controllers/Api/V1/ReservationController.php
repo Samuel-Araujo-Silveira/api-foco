@@ -12,6 +12,7 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Http\Requests\UpdateReservationRequest;
 
 
 class ReservationController extends Controller
@@ -162,7 +163,91 @@ class ReservationController extends Controller
         }
     }
 
-   
+    #[OA\Put(
+    path: "/reservations/{reservation}",
+    summary: "Atualizar uma reserva",
+    tags: ["Reservations"],
+    parameters: [
+        new OA\Parameter(
+            name: "reservation",
+            description: "ID da reserva",
+            in: "path",
+            required: true,
+            schema: new OA\Schema(type: "integer", example: 1001)
+        )
+    ],
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "first_name", type: "string", example: "João"),
+                new OA\Property(property: "last_name", type: "string", example: "Silva"),
+                new OA\Property(property: "hotel_id", type: "integer", example: 1375988),
+                new OA\Property(property: "room_id", type: "integer", example: 137598802),
+                new OA\Property(property: "arrival_date", type: "string", format: "date", example: "2026-06-10"),
+                new OA\Property(property: "departure_date", type: "string", format: "date", example: "2026-06-15"),
+                new OA\Property(property: "currencycode", type: "string", example: "BRL"),
+                new OA\Property(property: "meal_plan", type: "string", example: "Breakfast included."),
+                new OA\Property(property: "totalprice", type: "number", format: "float", example: 1500.00),
+                new OA\Property(
+                    property: "guest_counts",
+                    type: "array",
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: "type", type: "string", example: "adult"),
+                            new OA\Property(property: "count", type: "integer", minimum: 1, example: 2),
+                        ]
+                    )
+                ),
+                new OA\Property(
+                    property: "prices",
+                    type: "array",
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: "rate_id", type: "integer", example: 5333849),
+                            new OA\Property(property: "date", type: "string", format: "date", example: "2026-06-10"),
+                            new OA\Property(property: "amount", type: "number", format: "float", example: 300.00),
+                        ]
+                    )
+                ),
+            ]
+        )
+    ),
+    responses: [
+        new OA\Response(
+            response: 200,
+            description: "Reserva atualizada com sucesso",
+            content: new OA\JsonContent(ref: "#/components/schemas/Reservation")
+        ),
+        new OA\Response(response: 409, description: "Quarto não disponível para o período"),
+        new OA\Response(response: 422, description: "Erro de validação"),
+        new OA\Response(response: 404, description: "Reserva não encontrada"),
+        new OA\Response(response: 500, description: "Erro interno")
+    ]
+)]
+    public function update(UpdateReservationRequest $request, Reservation $reservation)
+    {
+        try {
+            $isAvailable = $this->reservationService->isRoomAvailable(
+                $reservation->reservation_rooms->first()->room_id,
+                $request->arrival_date   ?? $reservation->reservation_rooms->first()->arrival_date,
+                $request->departure_date ?? $reservation->reservation_rooms->first()->departure_date,
+            );
+
+            if (!$isAvailable) {
+                return $this->error('Room not available for this period', 409);
+            }
+
+            $updated = $this->reservationService->updateReservation($reservation, $request->validated());
+
+            return new ReservationResource(
+                $this->reservationRepository->findWithRelations($updated)
+            );
+        } catch (\Exception $e) {
+            Log::error('Error updating reservation', ['error' => $e->getMessage()]);
+            return $this->error('Error updating reservation', 500);
+        }
+    }
 
     #[OA\Delete(
         path: "/reservations/{id}",

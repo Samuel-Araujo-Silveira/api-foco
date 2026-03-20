@@ -106,4 +106,56 @@ class ReservationService
 
         return true;
     }
+
+    public function updateReservation(Reservation $reservation, array $data): Reservation
+    {
+        return DB::transaction(function () use ($reservation, $data) {
+
+            if (isset($data['first_name']) || isset($data['last_name'])) {
+                $reservation->customer->update([
+                    'first_name' => $data['first_name'] ?? $reservation->customer->first_name,
+                    'last_name'  => $data['last_name']  ?? $reservation->customer->last_name,
+                ]);
+            }
+
+            $reservation->update([
+                'hotel_id' => $data['hotel_id'] ?? $reservation->hotel_id,
+            ]);
+
+            $reservationRoom = $reservation->reservation_rooms()->first();
+
+            $reservationRoom->update([
+                'room_id'        => $data['room_id']        ?? $reservationRoom->room_id,
+                'arrival_date'   => $data['arrival_date']   ?? $reservationRoom->arrival_date,
+                'departure_date' => $data['departure_date'] ?? $reservationRoom->departure_date,
+                'currencycode'   => $data['currencycode']   ?? $reservationRoom->currencycode,
+                'meal_plan'      => $data['meal_plan']      ?? $reservationRoom->meal_plan,
+                'totalprice'     => $data['totalprice']     ?? $reservationRoom->totalprice,
+            ]);
+
+            if (isset($data['guest_counts'])) {
+                $reservationRoom->guest_counts()->delete();
+                foreach ($data['guest_counts'] as $guestCount) {
+                    $reservationRoom->guest_counts()->create([
+                        'type'  => $guestCount['type'],
+                        'count' => $guestCount['count'],
+                    ]);
+                }
+            }
+
+            if (isset($data['prices'])) {
+                $reservationRoom->rates()->detach();
+                foreach ($data['prices'] as $price) {
+                    RateReservationRoom::create([
+                        'reservation_room_id' => $reservationRoom->getKey(),
+                        'rate_id'             => $price['rate_id'],
+                        'date'                => $price['date'],
+                        'amount'              => $price['amount'],
+                    ]);
+                }
+            }
+
+            return $reservation->fresh();
+        });
+    }
 }
