@@ -32,7 +32,13 @@ php artisan key:generate
 php artisan migrate
 ```
 
-### 5. Inicie o servidor
+### 5. Crie o usuário administrador
+
+```bash
+php artisan tinker --execute="App\Models\User::factory()->create(['email' => 'admin@teste.com', 'password' => bcrypt('12345')]);"
+```
+
+### 6. Inicie o servidor
 
 ```bash
 php artisan serve
@@ -52,7 +58,7 @@ A rota de importação de XMLs é protegida por autenticação via **Laravel San
 
 ### Realizando login
 
-**Rota:** `POST 127.0.0.1:8000/api/v1/login`
+**Rota:** `POST {seuLocalhost}/api/v1/login`
 
 **Header:**
 | Key | Value |
