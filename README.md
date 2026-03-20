@@ -320,6 +320,148 @@ Tests: 19 passed
 
 ---
 
+## 📋 Requisitos do Projeto
+
+### 1. Importação e CRUD
+
+A importação dos dados é realizada pelo `XmlImportService`, localizado em `app/Services/XmlImportService.php`. O serviço lê os arquivos `hotels.xml`, `rooms.xml`, `rates.xml` e `reservations.xml` localizados em `storage/app/private/xml/` e os persiste no banco de dados.
+
+Para arquivos de estrutura simples (`hotels.xml`, `rooms.xml`, `rates.xml`), é utilizado o método genérico `importXml()`, que percorre os nós com `XMLReader` e persiste via `updateOrCreate`. Para o `reservations.xml`, de estrutura aninhada mais complexa, foi criado o método dedicado `importReservations()`, que combina `XMLReader` para navegação e `SimpleXML` para leitura interna de cada reserva.
+
+O CRUD de quartos é exposto via `RoomController` com as rotas `GET`, `POST`, `PATCH` e `DELETE` em `/api/v1/rooms`.
+
+---
+
+### 2. Regra de Disponibilidade
+
+A regra de disponibilidade está implementada no `ReservationService`, em `app/Services/ReservationService.php`, pelo método `isRoomAvailable()`.
+
+O método consulta todas as `ReservationRooms` vinculadas ao quarto solicitado e verifica conflito de datas usando o método `hasConflict()`, que compara as datas com Carbon:
+
+```php
+return $newIn->lt($exOut) && $newOut->gt($exIn);
+```
+
+Se houver conflito, a API retorna `409 Conflict` e a reserva não é criada.
+
+---
+
+### 3. Arquitetura
+
+O projeto foi construído seguindo os seguintes padrões de projeto:
+
+**Service Layer** — toda a lógica de negócio está separada dos Controllers:
+- `app/Services/ReservationService.php` — criação, atualização, deleção e disponibilidade de reservas
+- `app/Services/XmlImportService.php` — importação dos arquivos XML
+
+**Repository Pattern** — abstração do acesso ao banco de dados:
+- `app/Repositories/Contracts/RoomRepositoryInterface.php`
+- `app/Repositories/Contracts/ReservationRepositoryInterface.php`
+- `app/Repositories/Eloquent/RoomRepository.php`
+- `app/Repositories/Eloquent/ReservationRepository.php`
+
+**Form Requests** — validação isolada dos Controllers:
+- `app/Http/Requests/StoreRoomRequest.php`
+- `app/Http/Requests/UpdateRoomRequest.php`
+- `app/Http/Requests/StoreReservationRequest.php`
+- `app/Http/Requests/UpdateReservationRequest.php`
+
+**API Resources** — formatação padronizada das respostas:
+- `app/Http/Resources/V1/ReservationResource.php`
+
+**Traits** — comportamentos reutilizáveis:
+- `app/Traits/HttpResponses.php` — padronização das respostas HTTP da API
+
+---
+
+### 4. Testes
+
+O projeto possui testes unitários e de integração, executados com PHPUnit.
+
+#### `Tests\Unit\AvailabilityLogicTest`
+Teste unitário puro — sem banco de dados, sem factories. Testa diretamente o método `hasConflict()` do `ReservationService`, validando a lógica de comparação de datas:
+
+| Método | Objetivo |
+|---|---|
+| `test_dates_overlap` | Verifica que datas sobrepostas são detectadas como conflito |
+| `test_dates_do_not_overlap` | Verifica que datas adjacentes não geram conflito |
+| `test_dates_completely_before` | Verifica que datas anteriores ao período não conflitam |
+| `test_dates_completely_after` | Verifica que datas posteriores ao período não conflitam |
+
+#### `Tests\Feature\ReservationServiceTest`
+Testa o método `isRoomAvailable()` do `ReservationService` com banco de dados em memória:
+
+| Método | Objetivo |
+|---|---|
+| `test_room_is_available_when_no_reservations_exist` | Quarto sem reservas deve estar disponível |
+| `test_room_is_not_available_when_dates_overlap` | Quarto com reserva conflitante deve ser bloqueado |
+| `test_room_is_available_when_dates_do_not_overlap` | Quarto com reserva em outro período deve estar disponível |
+
+#### `Tests\Feature\ReservationTest`
+Testa o fluxo completo de criação de reservas via HTTP:
+
+| Método | Objetivo |
+|---|---|
+| `test_can_create_reservation` | Reserva válida deve ser criada com sucesso (`201`) |
+| `test_cannot_create_reservation_when_room_is_unavailable` | Reserva em período ocupado deve retornar `409` |
+| `test_cannot_create_reservation_with_invalid_data` | Payload inválido deve retornar `422` |
+
+#### `Tests\Feature\Api\V1\ReservationApiTest`
+Testa todos os endpoints da API de reservas de forma abrangente:
+
+| Método | Objetivo |
+|---|---|
+| `test_index_returns_all_reservations` | Listagem retorna todas as reservas |
+| `test_index_returns_empty_collection_when_no_reservations` | Listagem vazia retorna array vazio |
+| `test_show_returns_reservation` | Exibição retorna reserva correta |
+| `test_show_returns_404_when_reservation_not_found` | ID inexistente retorna `404` |
+| `test_store_creates_reservation_successfully` | Criação bem-sucedida retorna `201` |
+| `test_store_returns_409_when_room_is_not_available` | Conflito de datas retorna `409` |
+| `test_store_returns_422_when_payload_is_invalid` | Dados inválidos retornam `422` |
+| `test_destroy_deletes_reservation_successfully` | Deleção bem-sucedida retorna `200` |
+| `test_destroy_returns_404_when_reservation_not_found` | ID inexistente retorna `404` |
+
+---
+
+## ⭐ Extras
+
+### Diagrama de Classes
+
+O diagrama de classes do projeto está disponível na raiz do repositório no arquivo `diagrama-classes.png`, ilustrando os relacionamentos entre as entidades `Hotel`, `Room`, `Rate`, `Reservation`, `ReservationRoom`, `Customer`, `GuestCount` e `RateReservationRoom`.
+
+---
+
+### Swagger
+
+A documentação interativa da API foi gerada com o pacote `darkaonline/l5-swagger` e está disponível com o servidor rodando em:
+
+```
+http://127.0.0.1:8000/api/documentation
+```
+
+Todos os endpoints estão documentados com seus parâmetros, bodies e respostas esperadas, permitindo testar a API diretamente pelo navegador.
+
+---
+
+### Log
+
+O sistema utiliza o `Log` Facade do Laravel para registrar eventos importantes em `storage/logs/laravel.log`:
+
+| Nível | Evento |
+|---|---|
+| `info` | Reserva criada, atualizada ou deletada |
+| `info` | Início e fim da importação de XMLs |
+| `warning` | Tentativa de reserva em quarto indisponível |
+| `error` | Exceções capturadas nos Controllers |
+
+Para acompanhar os logs em tempo real:
+
+```bash
+tail -f storage/logs/laravel.log
+```
+
+---
+
 ## 📐 Arquitetura
 
 O projeto segue os seguintes padrões de projeto:
