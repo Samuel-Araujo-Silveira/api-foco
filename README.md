@@ -115,6 +115,7 @@ Importa os dados dos arquivos `hotels.xml`, `rooms.xml`, `rates.xml` e `reservat
         "id": 137598802,
         "hotel_id": 1375988,
         "name": "Deluxe Double Room",
+        "hotel_name": "Foco Hoteis Test Property (Provider ID 826)"
         "inventory_count": 15
     }
 ]
