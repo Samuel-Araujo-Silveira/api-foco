@@ -1,59 +1,357 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏨 API de Gestão Hoteleira
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST para gerenciamento de hotéis, quartos e reservas, desenvolvida com PHP 8 + Laravel.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Como Iniciar o Projeto
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 1. Clone o repositório
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+git clone https://github.com/seu-usuario/seu-repositorio.git
+cd seu-repositorio
+```
 
-## Learning Laravel
+### 2. Instale as dependências
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+composer install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 3. Configure o ambiente
 
-## Laravel Sponsors
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 4. Execute as migrations
 
-### Premium Partners
+```bash
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 5. Inicie o servidor
 
-## Contributing
+```bash
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 6. Crie o usuário administrador
 
-## Code of Conduct
+```bash
+php artisan tinker --execute="App\Models\User::factory()->create(['email' => 'admin@teste.com', 'password' => bcrypt('12345')]);"
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🔐 Autenticação
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+A rota de importação de XMLs é protegida por autenticação via **Laravel Sanctum**.
 
-## License
+### Realizando login
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Rota:** `POST 127.0.0.1:8000/api/v1/login`
+
+**Header:**
+| Key | Value |
+|---|---|
+| Content-Type | application/json |
+
+**Body:**
+```json
+{
+    "email": "admin@teste.com",
+    "password": "12345"
+}
+```
+
+**Resposta:**
+```json
+{
+    "token": "seu-token-aqui"
+}
+```
+
+> Copie o token retornado — ele será necessário para acessar a rota de importação.
+
+---
+
+## 📡 Acessando as Rotas
+
+### 🔒 POST `/api/v1/import` — Importação de XMLs
+> **Rota protegida — requer autenticação**
+
+Importa os dados dos arquivos `hotels.xml`, `rooms.xml`, `rates.xml` e `reservations.xml`.
+
+**Header:**
+| Key | Value |
+|---|---|
+| Content-Type | application/json |
+| Authorization | Bearer {token} |
+
+**Resposta de sucesso:** `200 OK`
+```json
+{
+    "message": "Importação realizada com sucesso"
+}
+```
+
+---
+
+### 🏠 Quartos — `/api/v1/rooms`
+
+#### GET `/api/v1/rooms` — Listar todos os quartos
+
+**Resposta de sucesso:** `200 OK`
+```json
+[
+    {
+        "id": 137598802,
+        "hotel_id": 1375988,
+        "name": "Deluxe Double Room",
+        "inventory_count": 15
+    }
+]
+```
+
+---
+
+#### GET `/api/v1/rooms/{id}` — Exibir um quarto
+
+**Resposta de sucesso:** `200 OK`
+```json
+{
+    "id": 137598802,
+    "hotel_id": 1375988,
+    "name": "Deluxe Double Room",
+    "inventory_count": 15
+}
+```
+
+**Resposta de erro:** `404 Not Found`
+
+---
+
+#### POST `/api/v1/rooms` — Criar um quarto
+
+**Header:**
+| Key | Value |
+|---|---|
+| Content-Type | application/json |
+
+**Body:**
+```json
+{
+    "id": 999,
+    "hotel_id": 1375988,
+    "name": "Quarto Deluxe",
+    "inventory_count": 10
+}
+```
+
+**Resposta de sucesso:** `200 OK`
+
+---
+
+#### PATCH `/api/v1/rooms/{id}` — Atualizar um quarto
+
+**Body:**
+```json
+{
+    "name": "Quarto Master",
+    "inventory_count": 5
+}
+```
+
+**Resposta de sucesso:** `200 OK`
+
+---
+
+#### DELETE `/api/v1/rooms/{id}` — Remover um quarto
+
+**Resposta de sucesso:** `200 OK`
+```json
+{
+    "message": "Room deleted"
+}
+```
+
+---
+
+### 📋 Reservas — `/api/v1/reservations`
+
+#### GET `/api/v1/reservations` — Listar todas as reservas
+
+**Resposta de sucesso:** `200 OK`
+```json
+[
+    {
+        "id": 3820212524,
+        "date": "2026-03-16",
+        "time": "09:15:00",
+        "hotel_id": 1375988,
+        "customer": {
+            "first_name": "Bruno",
+            "last_name": "Nascimento"
+        },
+        "room": {
+            "id": 3641632087,
+            "arrival_date": "2026-04-10",
+            "departure_date": "2026-04-12",
+            "currencycode": "BRL",
+            "meal_plan": "Breakfast included.",
+            "totalprice": 300.00,
+            "guest_counts": [
+                { "type": "adult", "count": 2 }
+            ],
+            "prices": [
+                { "rate_id": 5333849, "date": "2026-04-10", "amount": 150.00 }
+            ]
+        }
+    }
+]
+```
+
+---
+
+#### GET `/api/v1/reservations/{id}` — Exibir uma reserva
+
+**Resposta de sucesso:** `200 OK`
+
+**Resposta de erro:** `404 Not Found`
+
+---
+
+#### POST `/api/v1/reservations` — Criar uma reserva
+
+> O sistema valida automaticamente a disponibilidade do quarto no período solicitado.
+
+**Header:**
+| Key | Value |
+|---|---|
+| Content-Type | application/json |
+
+**Body:**
+```json
+{
+    "id": 9999999999,
+    "reservation_room_id": 8888888888,
+    "first_name": "João",
+    "last_name": "Silva",
+    "hotel_id": 1375988,
+    "room_id": 137598802,
+    "arrival_date": "2026-06-01",
+    "departure_date": "2026-06-05",
+    "currencycode": "BRL",
+    "meal_plan": "Breakfast included.",
+    "totalprice": 300.00,
+    "guest_counts": [
+        { "type": "adult", "count": 2 }
+    ],
+    "prices": [
+        { "rate_id": 5333849, "date": "2026-06-01", "amount": 150.00 },
+        { "rate_id": 5333849, "date": "2026-06-02", "amount": 150.00 }
+    ]
+}
+```
+
+**Resposta de sucesso:** `201 Created`
+
+**Resposta de conflito:** `409 Conflict`
+```json
+{
+    "message": "Room not available for this period"
+}
+```
+
+---
+
+#### PATCH `/api/v1/reservations/{id}` — Atualizar uma reserva
+
+**Body:**
+```json
+{
+    "arrival_date": "2026-06-10",
+    "departure_date": "2026-06-15",
+    "meal_plan": "No meals.",
+    "totalprice": 500.00,
+    "guest_counts": [
+        { "type": "adult", "count": 1 }
+    ],
+    "prices": [
+        { "rate_id": 5333849, "date": "2026-06-10", "amount": 250.00 }
+    ]
+}
+```
+
+**Resposta de sucesso:** `200 OK`
+
+---
+
+#### DELETE `/api/v1/reservations/{id}` — Cancelar uma reserva
+
+**Resposta de sucesso:** `200 OK`
+```json
+{
+    "message": "Reservation deleted"
+}
+```
+
+**Resposta de erro:** `404 Not Found`
+
+---
+
+## 🧪 Executando os Testes
+
+```bash
+php artisan test
+```
+
+**Resultado esperado:**
+```
+PASS  Tests\Unit\AvailabilityLogicTest
+PASS  Tests\Feature\ReservationServiceTest
+PASS  Tests\Feature\ReservationTest
+PASS  Tests\Feature\Api\V1\ReservationApiTest
+Tests: 19 passed
+```
+
+---
+
+## 📐 Arquitetura
+
+O projeto segue os seguintes padrões de projeto:
+
+- **Service Layer** — lógica de negócio separada dos Controllers (`ReservationService`, `XmlImportService`)
+- **Repository Pattern** — abstração do acesso a dados em `RoomRepository` e `ReservationRepository`
+- **Form Requests** — validação de dados isolada dos Controllers
+- **API Resources** — formatação de respostas padronizada
+
+### Decisões Técnicas
+
+- O **Repository Pattern** foi aplicado nos Controllers de Rooms e Reservations, onde o fluxo de negócio justifica a abstração.
+- O **XmlImportService** mantém acesso direto ao Eloquent por ser uma operação de carga de dados inicial, sem necessidade de abstração adicional.
+- A rota de importação é a única protegida por autenticação, pois é uma operação administrativa sensível.
+
+---
+
+## 📚 Documentação Swagger
+
+Com o servidor rodando, acesse:
+
+```
+http://127.0.0.1:8000/api/documentation
+```
+
+---
+
+## 🛠️ Tecnologias
+
+- PHP 8.4
+- Laravel 12
+- SQLite
+- PHPUnit
+- Laravel Sanctum
+- L5-Swagger
