@@ -21,7 +21,7 @@ class XmlImportService
      */
     public function __construct()
     {
-        $this->basePathToXMls = storage_path('app/private/xml');
+        $this->basePathToXMls = database_path('xml');
     }
 
     public function importAllXmlFiles(): void
