@@ -429,6 +429,9 @@ Testa todos os endpoints da API de reservas de forma abrangente:
 
 O diagrama de classes do projeto está disponível na raiz do repositório no arquivo `diagrama-classes.png`, ilustrando os relacionamentos entre as entidades `Hotel`, `Room`, `Rate`, `Reservation`, `ReservationRoom`, `Customer`, `GuestCount` e `RateReservationRoom`.
 
+<img width="679" height="407" alt="Captura de tela de 2026-03-20 01-55-29" src="https://github.com/user-attachments/assets/3c17ac0f-0aaa-4505-984a-b3efba8132bb" />
+
+
 ---
 
 ### Swagger
