@@ -9,10 +9,14 @@ use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use App\Repositories\Contracts\RoomRepositoryInterface;
 
 
 class RoomController extends Controller
 {
+
+    public function __construct(private RoomRepositoryInterface $roomRepository) {}
+
     use HttpResponses;
     #[OA\Get(
         path: "/rooms",
@@ -32,7 +36,7 @@ class RoomController extends Controller
     public function index()
     {
         try {
-            return response()->json(Room::all(), 200);
+            return response()->json($this->roomRepository->all(), 200);
         } catch (\Exception $e) {
             Log::error('Error fetching rooms', ['error' => $e->getMessage()]);
             return $this->error('Error fetching rooms', 500);
@@ -69,7 +73,7 @@ class RoomController extends Controller
     public function store(StoreRoomRequest $request)
     {
         try {
-            $created = Room::create($request->validated());
+            $created = $this->roomRepository->create($request->validated());
             return $this->response('Room Created', 200, $created);
         } catch (\Exception $e) {
             Log::error('Error creating room', ['error' => $e->getMessage()]);
@@ -103,7 +107,7 @@ class RoomController extends Controller
     public function show(Room $room)
     {
         try {
-            return response()->json($room, 200);
+            return response()->json($this->roomRepository->find($room->id), 200);
         } catch (\Exception $e) {
             Log::error('Error fetching room', ['error' => $e->getMessage()]);
             return $this->error('Room not found', 404);
@@ -147,8 +151,8 @@ class RoomController extends Controller
     )]
     public function update(UpdateRoomRequest $request, Room $room)
     {
-        try {
-            $room->update($request->validated());
+         try {
+            $this->roomRepository->update($room, $request->validated());
             return $this->response('Room updated', 200, $request->validated());
         } catch (\Exception $e) {
             Log::error('Error updating room', ['error' => $e->getMessage()]);
@@ -178,7 +182,7 @@ class RoomController extends Controller
     public function destroy(Room $room)
     {
         try {
-            $room->delete();
+            $this->roomRepository->delete($room);
             return $this->response('Room deleted', 200);
         } catch (\Exception $e) {
             Log::error('Error deleting room', ['error' => $e->getMessage()]);

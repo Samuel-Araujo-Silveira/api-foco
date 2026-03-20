@@ -11,13 +11,14 @@ use App\Http\Resources\V1\ReservationResource;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 
 
 class ReservationController extends Controller
 {
     use HttpResponses;
 
-    public function __construct(private ReservationService $reservationService) {}
+    public function __construct( private ReservationService $reservationService, private ReservationRepositoryInterface $reservationRepository) {}
 
     #[OA\Get(
         path: "/reservations",
@@ -37,13 +38,9 @@ class ReservationController extends Controller
     public function index()
     {
         try {
-            $reservations = Reservation::with([
-                'customer',
-                'reservation_rooms.guest_counts',
-                'reservation_rooms.rates',
-            ])->get();
-
-            return ReservationResource::collection($reservations);
+            return ReservationResource::collection(
+                $this->reservationRepository->allWithRelations()
+            );
         } catch (\Exception $e) {
             Log::error('Error fetching reservations', ['error' => $e->getMessage()]);
             return $this->error('Error fetching reservations', 500);
@@ -157,11 +154,7 @@ class ReservationController extends Controller
     {
         try {
             return new ReservationResource(
-                $reservation->load([
-                    'customer',
-                    'reservation_rooms.guest_counts',
-                    'reservation_rooms.rates',
-                ])
+                $this->reservationRepository->findWithRelations($reservation)
             );
         } catch (\Exception $e) {
             Log::error('Error fetching reservation', ['error' => $e->getMessage()]);
@@ -192,7 +185,7 @@ class ReservationController extends Controller
     public function destroy(string $id)
     {
         try {
-            $deleted = $this->reservationService->deleteReservation($id);
+            $deleted = $this->reservationRepository->delete($id);
 
             if (!$deleted) {
                 return $this->error('Reservation not found', 404);
