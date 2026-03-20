@@ -10,7 +10,7 @@ API REST para gerenciamento de hotéis, quartos e reservas, desenvolvida com PHP
 
 ```bash
 git clone https://github.com/Samuel-Araujo-Silveira/api-foco.git
-cd seu-repositorio
+cd api-foco
 ```
 
 ### 2. Instale as dependências
